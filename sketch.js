@@ -234,9 +234,9 @@ function grid(gridColor) {
   };
 }
 
-function preload() {
-  inconsolata = loadFont("assets/SourceSansPro-Regular.ttf");
-}
+// function preload() {
+//   inconsolata = loadFont("assets/SourceSansPro-Regular.ttf");
+// }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -313,7 +313,7 @@ function draw() {
   // 1 strum = 1초 / 1 strum에 걸리는 시간 = (frameCount / fps) / (((180 / ballAmount)/(0.1 * velocity))/fps)
   let deg = int((frameCount * 0.1 * velocity * ballAmount) / 2); // 1 strum * 90
   let strum = int(deg / 90);
-  text("strum " + strum + " deg " + deg, 10, 30);
+  // text("strum " + strum + " deg " + deg, 10, 30);
   if (deg % 90 === 0 && isPlaying) {
     changeMelody(strum);
   }
