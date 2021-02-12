@@ -1,32 +1,100 @@
 const midiNotes = [
-  [56, 60, 63, 67, 58, 68],
-  [60, 64, 67, 71, 74, 69],
+  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
+  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
+  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
+  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
+  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
+  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
+  ["A2", "A#2", "C3", "F3", "F3", "C3", "A#2", "A2"],
+  ["G2", "A2", "A#2", "E3", "E3", "A#2", "A2", "G2"],
+  ["F1", "C2", "A2", "F3", "D3", "A2", "C3", "F3"],
+  ["F1", "C2", "A2", "F3", "D3", "A2", "C3", "F3"],
+  ["D1", "A1", "D2", "F2", "A2", "C3", "E3", "C3"],
+  ["A2", "F2", "A2", "C3", "G1", "D2", "G2", "A#2"],
+  ["D1", "A1", "D2", "F2", "A2", "C3", "E3", "C3"],
+  ["A2", "F2", "A2", "C3", "G1", "D2", "G2", "A#2"],
+  ["C1", "G1", "E2", "G2", "A#2", "D3", "E3", "D3"],
+  ["A#2", "D2", "A#2", "G2", "F1", "C2", "F2", "A2"],
+  ["A1", "E2", "A2", "E2", "D2", "A2", "F2", "D2"],
+  ["G1", "F2", "G2", "A#2", "C1", "G1", "E2", "A#2"],
+  ["F0", "F1", "C2", "D#2", "G2", "A2", "C3", "D#3"],
+  ["G3", "D#3", "C3", "A2", "G2", "D#2", "C2", "F1"],
+  ["F0", "F1", "C2", "D#2", "G2", "A2", "C3", "D#3"],
+  ["G3", "D#3", "C3", "A2", "G2", "D#2", "C2", "F1"],
+  ["A#0", "F1", "A#2", "D2", "F2", "A#2", "D3", "F3"],
+  ["D3", "A#2", "F2", "D2", "A#1", "F1", "A#0", "F1"],
+  ["A#0", "F1", "A#2", "D2", "F2", "A#2", "D3", "F3"],
+  ["D3", "A#2", "F2", "D2", "A#1", "F1", "A#0", "F1"],
+  ["G0", "G1", "C#2", "F2", "A2", "C#3", "F3", "A3"],
+  ["G1", "D2", "F2", "A2", "D3", "A2", "F2", "D2"],
+  ["G0", "G1", "C#2", "F2", "A2", "C#3", "F3", "A3"],
+  ["G1", "D2", "F2", "A2", "D3", "A2", "F2", "D2"],
+  ["G1", "D2", "F2", "A2", "D3", "A2", "F2", "D2"],
+  ["G1", "D2", "F2", "A2", "B2", "A2", "G2", "F2"],
+  ["C1", "G1", "C2", "E2", "G2", "C3", "E3", "G3"],
+  ["C4", "E4", "G4", "C5", "G4", "E4", "C4", "G3"],
 ];
+
+let createNoteNumTable = () => {
+  let root;
+  let noteNumTable = [];
+  for (let oct = 0; oct < 8; ++oct) {
+    noteNumTable[oct] = [];
+    root = 12 * (oct + 2);
+    noteNumTable[oct]["C"] = root;
+    noteNumTable[oct]["C#"] = root + 1;
+    noteNumTable[oct]["D"] = root + 2;
+    noteNumTable[oct]["D#"] = root + 3;
+    noteNumTable[oct]["E"] = root + 4;
+    noteNumTable[oct]["F"] = root + 5;
+    noteNumTable[oct]["F#"] = root + 6;
+    noteNumTable[oct]["G"] = root + 7;
+    noteNumTable[oct]["G#"] = root + 8;
+    noteNumTable[oct]["A"] = root + 9;
+    noteNumTable[oct]["A#"] = root + 10;
+    noteNumTable[oct]["B"] = root + 11;
+  }
+
+  return noteNumTable;
+};
+
+const noteNumTable = createNoteNumTable();
+
+let noteToNum = (note) => {
+  if (!note) return 0;
+  const regexp = /([A-G]#?)(\d)/;
+  parsedNote = regexp.exec(note);
+  let key = parsedNote[1];
+  let oct = parsedNote[2];
+  return noteNumTable[oct][key];
+};
 
 const fps = 30;
 
 let bg;
 let lightGray;
 
+let newGrid;
 let ballList = [];
 let lineList = [];
 
 let isPlaying = false;
 let bar = 0;
 
-let velocity = 15;
-let debounceTime = 60; // 60frame
+let viewScale = 1;
+let ballAmount = 2;
+let velocity = 12;
 
 function Ball(startX, startY, rad, orbitRad, angle, velocity) {
   this.startX = startX;
   this.startY = startY;
-  this.x = startX;
-  this.y = startY;
+  this.x = width / 2;
+  this.y = height / 2;
   this.r = rad;
   this.scalar = orbitRad;
   this.angle = angle;
   this.velocity = velocity;
-  this.ease = 0.4;
+  this.ease = 0.3;
 
   this.display = function () {
     noStroke();
@@ -35,52 +103,47 @@ function Ball(startX, startY, rad, orbitRad, angle, velocity) {
   };
 
   this.update = function () {
-    this.angle += 0.1 * this.velocity;
-
-    let targetX = this.startX + this.scalar * cos(radians(this.angle));
+    const centerX = width / 2;
+    const centerY = height / 2;
+    let targetX =
+      centerX +
+      this.startX +
+      this.scalar * viewScale * cos(radians(this.angle));
     let dx = targetX - this.x;
     this.x += dx * this.ease;
 
-    let targetY = this.startY + this.scalar * sin(radians(this.angle));
+    let targetY =
+      centerY +
+      this.startY +
+      this.scalar * viewScale * sin(radians(this.angle));
     let dy = targetY - this.y;
     this.y += dy * this.ease;
 
-    if (this.x < -1 * (rad + 1)) {
-      this.x = width;
-    }
-    if (this.y < -1 * (rad + 1)) {
-      this.y = height;
-    }
-    if (this.x > width + rad + 1) {
-      this.x = 0;
-    }
-    if (this.y > height + rad + 1) {
-      this.y = 0;
-    }
+    this.angle += 0.1 * this.velocity;
   };
 }
 
-function Line(x) {
-  this.targetVec1 = createVector(x, height / 2);
-  this.targetVec2 = createVector(x, height / 2);
-  this.vec1 = createVector(x, height / 2);
-  this.vec2 = createVector(x, height / 2);
+function Line(y) {
+  this.targetVec1 = createVector(0, y);
+  this.targetVec2 = createVector(0, y);
+  this.vec1 = createVector(width / 2, y + height / 2);
+  this.vec2 = createVector(width / 2, y + height / 2);
   this.cpx = (this.vec1.x + this.vec2.x) / 2;
   this.cpy = (this.vec1.y + this.vec2.y) / 2;
   this.shakyCpx = this.cpx;
   this.shakyCpy = this.cpy;
 
-  this.ease = 0.07;
+  this.ease = 0.3;
 
   this.color = lightGray;
   this.magnitude = 0;
-  this.tail = 0.2;
+  this.tail = 0.5;
 
   this.osc = new p5.Oscillator("sine");
   this.osc.amp(0);
-  this.env = new p5.Envelope(0.0045, 0.2, 0.2 + this.tail / 1.8, 0);
+  this.env = new p5.Envelope(0.0045, velocity * 0.01, 0.2 + this.tail / 1.8, 0);
   this.osc.start();
-  reverb.process(this.osc, 4, 2);
+  reverb.process(this.osc, 5, 2);
 
   this.isHit = false;
 
@@ -103,13 +166,18 @@ function Line(x) {
     // check for collision
     // if hit, change line's stroke color
     let hit = lineCircle(this, ball);
-    if (hit && this.isHit == false) {
+    if (hit && this.isHit === false) {
       this.magnitude = abs(ball.velocity / 1.5);
-      let stringLength = dist(this.vec1.x, this.vec1.y, this.vec2.x, this.vec2.y);
-      let lengthToFreq = -1 * (stringLength * 2.5 - 1024);
+      let stringLength = dist(
+        this.vec1.x,
+        this.vec1.y,
+        this.vec2.x,
+        this.vec2.y
+      );
+      let lengthToFreq = -1 * ((stringLength - 50) * 3 - 1024);
       this.osc.freq(lengthToFreq);
-      if (stringLength > 5) {
-      this.env.play(this.osc);
+      if (stringLength > 50) {
+        this.env.play(this.osc);
       }
       this.isHit = true;
     } else if (!hit && this.isHit) {
@@ -118,16 +186,16 @@ function Line(x) {
   };
 
   this.changeNote = function (note) {
-    let y1, y2, stringLength;
-    stringLength = note >= 40 ? (1024 - midiToFreq(note)) / 2.5 : 0;
-    y1 = height / 2 - stringLength / 2;
-    y2 = height / 2 + stringLength / 2;
+    let x1, x2, stringLength;
+    stringLength = note > 0 ? (1024 - midiToFreq(note)) / 3 + 50 : 0;
+    x1 = (-1 * stringLength) / 2;
+    x2 = stringLength / 2;
 
-    targetVec1 = createVector(this.targetVec1.x, y1);
-    targetVec2 = createVector(this.targetVec1.x, y2);
+    targetVec1 = createVector(x1, this.targetVec1.y);
+    targetVec2 = createVector(x2, this.targetVec2.y);
 
     this.move(targetVec1, targetVec2);
-  }
+  };
 
   this.move = function (targetVec1, targetVec2) {
     this.targetVec1 = targetVec1;
@@ -135,25 +203,45 @@ function Line(x) {
   };
 
   this.update = function () {
-    this.vec1 = easeVector(this.vec1, this.targetVec1, this.ease);
-    this.vec2 = easeVector(this.vec2, this.targetVec2, this.ease);
+    const centerVec = createVector(width / 2, height / 2);
+    let absoluteTargetVec1 = p5.Vector.add(this.targetVec1, centerVec);
+    let absoluteTargetVec2 = p5.Vector.add(this.targetVec2, centerVec);
+    this.vec1 = easeVector(this.vec1, absoluteTargetVec1, this.ease);
+    this.vec2 = easeVector(this.vec2, absoluteTargetVec2, this.ease);
 
     this.cpx = (this.vec1.x + this.vec2.x) / 2;
     this.cpy = (this.vec1.y + this.vec2.y) / 2;
 
     if (this.magnitude > 0) this.magnitude *= 0.8 + this.tail * 0.13;
-    this.shakyCpx = this.cpx + sin(frameCount * 1.5) * this.magnitude;
-    this.shakyCpy = this.cpy;
+    this.shakyCpx = this.cpx;
+    this.shakyCpy = this.cpy + sin(frameCount * 1.5) * this.magnitude;
+  };
+}
+
+function grid(gridColor) {
+  this.gridColor = gridColor;
+  this.centerVec = createVector(width / 2, height / 2);
+  this.ease = 0.3;
+
+  this.display = function () {
+    stroke(this.gridColor);
+    line(this.centerVec.x, 0, this.centerVec.x, height);
+    line(0, this.centerVec.y, width, this.centerVec.y);
+  };
+  this.update = function () {
+    const updatedCenterVec = createVector(width / 2, height / 2);
+    this.centerVec = easeVector(this.centerVec, updatedCenterVec, this.ease);
   };
 }
 
 function preload() {
-  inconsolata = loadFont('assets/SourceSansPro-Regular.ttf');
+  inconsolata = loadFont("assets/SourceSansPro-Regular.ttf");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(fps);
+
   reverb = new p5.Reverb();
   let dryWet = 0.6;
   reverb.drywet(dryWet);
@@ -161,36 +249,36 @@ function setup() {
   bg = color("#1D4E89");
   lightGray = color("#e6e6e6");
 
-  let ballAmount = 2;
-  let orbitRadius = height / 4 - 40;
+  newGrid = new grid(color("#00397F"));
+
+  let orbitRadius = width / 4;
   for (let i = 0; i < ballAmount; i += 1) {
-    newBall = new Ball(
-      width / 2,
-      height / 2 + 10 - orbitRadius,
+    let newBall = new Ball(
+      -1 * orbitRadius,
+      0,
       4,
       orbitRadius,
-      (360 / ballAmount) * (i + 0.5) + 38,
+      (360 / ballAmount) * i - 50,
       velocity
     );
     ballList.push(newBall);
   }
   for (let i = 0; i < ballAmount; i += 1) {
-    newBall = new Ball(
-      width / 2,
-      height / 2 - 10 + orbitRadius,
+    let newBall = new Ball(
+      orbitRadius,
+      0,
       4,
       orbitRadius,
-      (360 / ballAmount) * (i + 1) - 38,
+      (360 / ballAmount) * (i + 0.5) + 50,
       -1 * velocity
     );
     ballList.push(newBall);
   }
 
   let lineAmount = 8;
+  let lineSpace = 37;
   for (let i = 0; i < lineAmount; i += 1) {
-    newLine = new Line(
-      width / 2 + 24 * ((lineAmount - 1) / 2 - i)
-    );
+    newLine = new Line(lineSpace * ((lineAmount - 1) / 2 - i) * viewScale);
     lineList.push(newLine);
   }
 
@@ -204,10 +292,8 @@ function setup() {
 function draw() {
   background(bg);
 
-  // Grid
-  // stroke(color("#00397F"));
-  // line(width / 2, 0, width / 2, height);
-  // line(0, height / 2, width, height / 2);
+  newGrid.update();
+  newGrid.display();
 
   fill(lightGray);
 
@@ -224,13 +310,17 @@ function draw() {
     line.display();
   });
 
-  bar = frameCount/(450/fps);
-  text("orbit " + (bar / 40).toFixed(0), 10, 30);
-  if ((bar % 40).toFixed(1)== 0 && isPlaying) {
-    changeMelody(bar);
+  // 1 strum = 1초 / 1 strum에 걸리는 시간 = (frameCount / fps) / (((180 / ballAmount)/(0.1 * velocity))/fps)
+  let deg = int((frameCount * 0.1 * velocity * ballAmount) / 2); // 1 strum * 90
+  let strum = int(deg / 90);
+  text("strum " + strum + " deg " + deg, 10, 30);
+  if (deg % 90 === 0 && isPlaying) {
+    changeMelody(strum);
   }
 }
 
+// this function fires after the mouse has been
+// clicked anywhere
 function mousePressed() {
   if (isPlaying) {
     lineList.map((line, index) => {
@@ -246,18 +336,21 @@ function mousePressed() {
   userStartAudio();
 }
 
-// this function fires after the mouse has been
-// clicked anywhere
-function changeMelody(bar) {
-  // console.log(int(bar)/5);
+function changeMelody(strum) {
+  // console.log(strum);
+  let note;
   lineList.map((line, index) => {
-    note = midiNotes[int(bar) / 40 % midiNotes.length][int(random(midiNotes[0].length))];
-    line.changeNote(note);
+    note = midiNotes[strum % midiNotes.length][index];
+    line.changeNote(noteToNum(note));
   });
 }
 
-function windowResized() {
+const efficientResize = debounce(function () {
   resizeCanvas(windowWidth, windowHeight);
+}, 100);
+
+function windowResized() {
+  efficientResize();
 }
 
 // LINE/CIRCLE
@@ -353,4 +446,15 @@ let easeVector = (vec, targetVec, ease) => {
   return vec;
 };
 
-//180 = 0.1 * velocity
+function debounce(func, wait) {
+  let inDebounce;
+  return function () {
+    const context = this;
+    const args = arguments;
+
+    // setTimeout이 실행된 Timeout의 ID를 반환하고, clearTimeout()으로 이를 해제할 수 있음을 이용
+    clearTimeout(inDebounce);
+
+    inDebounce = setTimeout(() => func.apply(context, arguments), wait);
+  };
+}
