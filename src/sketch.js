@@ -1,105 +1,31 @@
-const midiNotes = [
-  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
-  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
-  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
-  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
-  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
-  ["A#2", "C3", "D3", "G3", "G3", "D3", "C3", "A#2"],
-  ["A2", "A#2", "C3", "F3", "F3", "C3", "A#2", "A2"],
-  ["G2", "A2", "A#2", "E3", "E3", "A#2", "A2", "G2"],
-  ["F1", "C2", "A2", "F3", "D3", "A2", "C3", "F3"],
-  ["F1", "C2", "A2", "F3", "D3", "A2", "C3", "F3"],
-  ["D1", "A1", "D2", "F2", "A2", "C3", "E3", "C3"],
-  ["A2", "F2", "A2", "C3", "G1", "D2", "G2", "A#2"],
-  ["D1", "A1", "D2", "F2", "A2", "C3", "E3", "C3"],
-  ["A2", "F2", "A2", "C3", "G1", "D2", "G2", "A#2"],
-  ["C1", "G1", "E2", "G2", "A#2", "D3", "E3", "D3"],
-  ["A#2", "D2", "A#2", "G2", "F1", "C2", "F2", "A2"],
-  ["A1", "E2", "A2", "E2", "D2", "A2", "F2", "D2"],
-  ["G1", "F2", "G2", "A#2", "C1", "G1", "E2", "A#2"],
-  ["F0", "F1", "C2", "D#2", "G2", "A2", "C3", "D#3"],
-  ["G3", "D#3", "C3", "A2", "G2", "D#2", "C2", "F1"],
-  ["F0", "F1", "C2", "D#2", "G2", "A2", "C3", "D#3"],
-  ["G3", "D#3", "C3", "A2", "G2", "D#2", "C2", "F1"],
-  ["A#0", "F1", "A#2", "D2", "F2", "A#2", "D3", "F3"],
-  ["D3", "A#2", "F2", "D2", "A#1", "F1", "A#0", "F1"],
-  ["A#0", "F1", "A#2", "D2", "F2", "A#2", "D3", "F3"],
-  ["D3", "A#2", "F2", "D2", "A#1", "F1", "A#0", "F1"],
-  ["G0", "G1", "C#2", "F2", "A2", "C#3", "F3", "A3"],
-  ["G1", "D2", "F2", "A2", "D3", "A2", "F2", "D2"],
-  ["G0", "G1", "C#2", "F2", "A2", "C#3", "F3", "A3"],
-  ["G1", "D2", "F2", "A2", "D3", "A2", "F2", "D2"],
-  ["G1", "D2", "F2", "A2", "D3", "A2", "F2", "D2"],
-  ["G1", "D2", "F2", "A2", "B2", "A2", "G2", "F2"],
-  ["C1", "G1", "C2", "E2", "G2", "C3", "E3", "G3"],
-  ["C4", "E4", "G4", "C5", "G4", "E4", "C4", "G3"],
-];
-
-function createNoteNumTable() {
-  let root;
-  let noteNumTable = [];
-  for (let oct = 0; oct < 8; ++oct) {
-    noteNumTable[oct] = [];
-    root = 12 * (oct + 2);
-    noteNumTable[oct]["C"] = root;
-    noteNumTable[oct]["C#"] = root + 1;
-    noteNumTable[oct]["D"] = root + 2;
-    noteNumTable[oct]["D#"] = root + 3;
-    noteNumTable[oct]["E"] = root + 4;
-    noteNumTable[oct]["F"] = root + 5;
-    noteNumTable[oct]["F#"] = root + 6;
-    noteNumTable[oct]["G"] = root + 7;
-    noteNumTable[oct]["G#"] = root + 8;
-    noteNumTable[oct]["A"] = root + 9;
-    noteNumTable[oct]["A#"] = root + 10;
-    noteNumTable[oct]["B"] = root + 11;
-  }
-
-  return noteNumTable;
-}
-
-const noteNumTable = createNoteNumTable();
-
-function noteToNum(note) {
-  if (!note) return 0;
-  const regexp = /([A-G]#?)(\d)/;
-  parsedNote = regexp.exec(note);
-  let key = parsedNote[1];
-  let oct = parsedNote[2];
-  return noteNumTable[oct][key];
-}
-
 const fps = 60;
 const X_AXIS = 1;
 const Y_AXIS = 2;
-
-let myFont;
-let bgBottom, bgTop, ballColor, lineColor, textColor;
 
 let intro;
 let newGrid;
 let ballList = [];
 let lineList = [];
-
-let isPlaying = false;
-let bar = 0;
-
+let bgBottom, bgTop, ballColor, lineColor, textColor;
 let viewScale;
-let ballAmount = 2;
-let velocity = 7;
+let ballAmount;
+let velocity;
+let bar;
+let isPlaying = false;
 
-function Ball(ballColor, rad, angle, velocity, clockwise = false) {
+function Ball(ballColor, ballStrokeColor, rad, angle, velocity, clockwise = false) {
   this.color = color(ballColor);
+  this.strokeColor = color(ballStrokeColor);
   this.targetVec = createVector(0, 0);
   this.vec = createVector((width / 5) * (clockwise ? -1 : 1), 0);
   this.r = rad;
   this.angle = angle;
   this.velocity = velocity;
   this.clockwise = clockwise;
-  this.ease = 0.5;
+  this.ease = 0.3;
   this.display = function () {
     // noStroke();
-    stroke(color("#FFFFFF"))
+    stroke(this.strokeColor);
     fill(this.color);
     circle(this.vec.x + width / 2, this.vec.y + height / 2, this.r * 2);
   };
@@ -178,7 +104,7 @@ function Line(quantity, index, lineColor) {
     text(
       stringLength > 1 ? lengthToFreq.toFixed(2) + " Hz" : "",
       this.vec2.x + centerVec.x + 50 / (1440 / width),
-      this.vec2.y + centerVec.y + 5
+      this.vec2.y + centerVec.y + 4
     );
   };
 
@@ -193,7 +119,7 @@ function Line(quantity, index, lineColor) {
       }
     });
     if (hitBallIndex !== false && !this.isFirstHit) {
-      this.magnitude = abs(ballList[hitBallIndex].velocity * 3);
+      this.magnitude = abs(ballList[hitBallIndex].velocity * 2);
       let stringLength = dist(
         this.vec1.x,
         this.vec1.y,
@@ -249,7 +175,6 @@ function Line(quantity, index, lineColor) {
     absoluteTargetVec2.mult(viewScale);
 
     this.vec1 = easeVector(this.vec1, absoluteTargetVec1, this.ease);
-
     this.vec2 = easeVector(this.vec2, absoluteTargetVec2, this.ease);
 
     this.cpx = (this.vec1.x + this.vec2.x) / 2;
@@ -280,7 +205,7 @@ function Grid(gridColor) {
 }
 
 function Intro(introColor) {
-  this.title = "orbit strum";
+  this.title = "ORBIT STRUM";
   this.message = "click or press spacebar";
   this.titleColor = color(introColor);
   this.messageColor = color(introColor);
@@ -294,7 +219,7 @@ function Intro(introColor) {
     textSize(18);
     fill(this.messageColor);
     introWidth = textWidth(this.message);
-    text(this.message, width / 2 - introWidth / 2, height / 2 + 9);
+    text(this.message, width / 2 - introWidth / 2, height / 2 + 5);
   };
   this.update = function () {
     if (isPlaying) {
@@ -307,91 +232,6 @@ function Intro(introColor) {
       this.messageColor.setAlpha(128 + 128 * sin(frameCount / fps * 3));
     }
   };
-}
-
-function preload() {
-  myFont = loadFont('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/IBMPlexSansKR-Medium.woff'); 
-}
-
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  frameRate(fps);
-
-  reverb = new p5.Reverb();
-  let dryWet = 0.6;
-  reverb.drywet(dryWet);
-
-  textFont(myFont);
-
-  bgTop = color("#FF6F03");
-  bgBottom = color("#FF6F03");
-  let colorA = "#f4f9f9";
-  let black = "#000000";
-  ballColor = black;
-  lineColor = colorA;
-  textColor = colorA;
-  gridColor = "#3f72af"
-
-  viewScale = 0.9;
-
-  newGrid = new Grid(gridColor);
-
-  let lineQuantity = midiNotes[0].length;
-  for (let i = 0; i < lineQuantity; i += 1) {
-    newLine = new Line(lineQuantity, i, lineColor);
-    lineList.push(newLine);
-  }
-
-  let ballRad = 6;
-
-  for (let i = 0; i < ballAmount; i += 1) {
-    let newBall = new Ball(ballColor, ballRad, (360 / ballAmount) * (i + 0.5) - 130, velocity);
-    ballList.push(newBall);
-  }
-
-  for (let i = 0; i < ballAmount; i += 1) {
-    let newBall = new Ball(ballColor, ballRad, (360 / ballAmount) * i - 50, velocity, true);
-    ballList.push(newBall);
-  }
-
-  intro = new Intro(textColor);
-
-  // mimics the autoplay policy
-  getAudioContext().suspend();
-}
-
-function draw() {
-  setGradient(0, 0, width, height, bgTop, bgBottom, Y_AXIS)
-
-  // newGrid.update();
-  // newGrid.display();
-
-  lineList.map((line) => {
-    line.checkCollision(ballList);
-    line.update();
-    line.display();
-  });
-
-  ballList.map((ball) => {
-    ball.update();
-    ball.display();
-  });
-
-  
-
-  // 1 strum = 1초 / 1 strum에 걸리는 시간 = (frameCount / fps) / (((180 / ballAmount)/(0.1 * velocity))/fps)
-  // let deg = int((frameCount * 0.1 * velocity * ballAmount) / 2); // 1 strum * 90
-  // let strum = int(deg / 90);
-  // fill(color(textColor));
-  // noStroke();
-  // textSize(32);
-  // text("strum " + strum + " deg " + deg, 10, 30);
-  // if (deg % 90 === 0 && isPlaying) {
-  //   changeMelody(strum);
-  // }
-
-  intro.update();
-  intro.display();
 }
 
 function setGradient(x, y, w, h, c1, c2, axis) {
@@ -437,13 +277,6 @@ function keyPressed() {
   return false; // prevent any default behaviour
 }
 
-function changeMelody(chordIndex) {
-  lineList.map((line, index) => {
-    note = midiNotes[chordIndex][index];
-    line.changeNote(noteToNum(note));
-  });
-}
-
 const efficientResize = debounce(function () {
   resizeCanvas(windowWidth, windowHeight);
 }, 100);
@@ -452,102 +285,85 @@ function windowResized() {
   efficientResize();
 }
 
-// LINE/CIRCLE
-function lineCircle(line, circle) {
-  // is either end INSIDE the circle?
-  // if so, return true immediately
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  frameRate(fps);
 
-  let x1 = line.vec1.x;
-  let y1 = line.vec1.y;
-  let x2 = line.vec2.x;
-  let y2 = line.vec2.y;
-  let cx = circle.vec.x;
-  let cy = circle.vec.y;
-  let r = circle.r;
+  reverb = new p5.Reverb();
+  let dryWet = 0.6;
+  reverb.drywet(dryWet);
 
-  let inside1 = pointCircle(x1, y1, cx, cy, r);
-  let inside2 = pointCircle(x2, y2, cx, cy, r);
-  if (inside1 || inside2) return true;
+  textFont("Montserrat");
 
-  // get length of the line
-  let distX = x1 - x2;
-  let distY = y1 - y2;
-  let len = dist(x1, y1, x2, y2);
+  bgTop = color("#FF6F03");
+  bgBottom = color("#FF6F03");
+  let colorA = "#ffffff";
+  ballColor = colorA;
+  ballStrokeColor = colorA;
+  lineColor = colorA;
+  textColor = colorA;
+  gridColor = "#3f72af"
 
-  // get dot product of the line and circle
-  let dot = ((cx - x1) * (x2 - x1) + (cy - y1) * (y2 - y1)) / pow(len, 2);
+  viewScale = 0.9;
 
-  // find the closest point on the line
-  let closestX = x1 + dot * (x2 - x1);
-  let closestY = y1 + dot * (y2 - y1);
+  ballAmount = 2;
+  velocity = 7;
+  bar = 0
 
-  // is this point actually on the line segment?
-  // if so keep going, but if not, return false
-  let onSegment = linePoint(x1, y1, x2, y2, closestX, closestY);
-  if (!onSegment) return false;
+  newGrid = new Grid(gridColor);
 
-  // get distance to closest point
-  let distance = dist(closestX, closestY, cx, cy);
-
-  if (distance <= r) {
-    return true;
+  let lineQuantity = midiNotes[0].length;
+  for (let i = 0; i < lineQuantity; i += 1) {
+    newLine = new Line(lineQuantity, i, lineColor);
+    lineList.push(newLine);
   }
-  return false;
-}
 
-// POINT/CIRCLE
-function pointCircle(px, py, cx, cy, r) {
-  // get distance between the point and circle's center
-  // using the Pythagorean Theorem
-  let distance = dist(px, py, cx, cy);
+  let ballRad = 6;
 
-  // if the distance is less than the circle's
-  // radius the point is inside!
-  if (distance <= r) {
-    return true;
+  for (let i = 0; i < ballAmount; i += 1) {
+    let newBall = new Ball(ballColor, ballStrokeColor, ballRad, (360 / ballAmount) * (i + 0.5) - 130, velocity);
+    ballList.push(newBall);
   }
-  return false;
-}
 
-// LINE/POINT
-function linePoint(x1, y1, x2, y2, px, py) {
-  // get distance from the point to the two ends of the line
-  let d1 = dist(px, py, x1, y1);
-  let d2 = dist(px, py, x2, y2);
-
-  // get the length of the line
-  let lineLen = dist(x1, y1, x2, y2);
-
-  // since floats are so minutely accurate, add
-  // a little buffer zone that will give collision
-  let buffer = 0.1; // higher # = less accurate
-
-  // if the two distances are equal to the line's
-  // length, the point is on the line!
-  // note we use the buffer here to give a range,
-  // rather than one #
-  if (d1 + d2 >= lineLen - buffer && d1 + d2 <= lineLen + buffer) {
-    return true;
+  for (let i = 0; i < ballAmount; i += 1) {
+    let newBall = new Ball(ballColor, ballStrokeColor, ballRad, (360 / ballAmount) * i - 50, velocity, true);
+    ballList.push(newBall);
   }
-  return false;
+
+  intro = new Intro(textColor);
+
+  // mimics the autoplay policy
+  getAudioContext().suspend();
 }
 
-function easeVector(vec, targetVec, ease) {
-  let dx = targetVec.x - vec.x;
-  let dy = targetVec.y - vec.y;
-  vec = createVector(vec.x + dx * ease, vec.y + dy * ease);
-  return vec;
-}
+function draw() {
+  setGradient(0, 0, width, height, bgTop, bgBottom, Y_AXIS)
 
-function debounce(func, wait) {
-  let inDebounce;
-  return function () {
-    const context = this;
-    const args = arguments;
+  // newGrid.update();
+  // newGrid.display();
 
-    // setTimeout이 실행된 Timeout의 ID를 반환하고, clearTimeout()으로 이를 해제할 수 있음을 이용
-    clearTimeout(inDebounce);
+  lineList.map((line) => {
+    line.checkCollision(ballList);
+    line.update();
+    line.display();
+  });
 
-    inDebounce = setTimeout(() => func.apply(context, arguments), wait);
-  };
+  ballList.map((ball) => {
+    ball.update();
+    ball.display();
+  });
+
+  // 1 strum = 1초 / 1 strum에 걸리는 시간 = (frameCount / fps) / (((180 / ballAmount)/(0.1 * velocity))/fps)
+  // let deg = int((frameCount * 0.1 * velocity * ballAmount) / 2); // 1 strum * 90
+  // let strum = int(deg / 90);
+  // fill(color(textColor));
+  // noStroke();
+  // textSize(32);
+  // text("strum " + strum + " deg " + deg, 10, 30);
+  // if (deg % 90 === 0 && isPlaying) {
+  //   changeMelody(strum);
+  // }
+
+  intro.update();
+  intro.display();
 }
