@@ -13,7 +13,14 @@ let velocity;
 let bar;
 let isPlaying = false;
 
-function Ball(ballColor, ballStrokeColor, rad, angle, velocity, clockwise = false) {
+function Ball(
+  ballColor,
+  ballStrokeColor,
+  rad,
+  angle,
+  velocity,
+  clockwise = false,
+) {
   this.color = color(ballColor);
   this.strokeColor = color(ballStrokeColor);
   this.targetVec = createVector(0, 0);
@@ -51,27 +58,22 @@ function Line(quantity, index, lineColor) {
   this.lineSpace = 62;
   this.targetVec1 = createVector(0, 0);
   this.targetVec2 = createVector(0, 0);
-  let y = ((this.lineSpace * width) / 1440) * (this.index - (this.quantity - 1) / 2);
-  this.vec1 = createVector(
-    0,
-    y
-  );
-  this.vec2 = createVector(
-    0,
-    y
-  );
+  let y =
+    ((this.lineSpace * width) / 1440) * (this.index - (this.quantity - 1) / 2);
+  this.vec1 = createVector(0, y);
+  this.vec2 = createVector(0, y);
   this.cpx = (this.vec1.x + this.vec2.x) / 2;
   this.cpy = (this.vec1.y + this.vec2.y) / 2;
   this.shakyCpx = this.cpx;
   this.shakyCpy = this.cpy;
 
-  this.ease = 0.2;
+  this.ease = 0.04;
 
   this.color = color(lineColor);
   this.magnitude = 0;
   this.tail = 0.5;
 
-  this.osc = new p5.Oscillator("sine");
+  this.osc = new p5.Oscillator('sine');
   this.osc.amp(0);
   this.env = new p5.Envelope(0.0045, velocity * 0.05, 0.2 + this.tail / 1.8, 0);
   this.osc.start();
@@ -92,7 +94,7 @@ function Line(quantity, index, lineColor) {
       this.shakyCpx + centerVec.x,
       this.shakyCpy + centerVec.y,
       this.vec2.x + centerVec.x,
-      this.vec2.y + centerVec.y
+      this.vec2.y + centerVec.y,
     );
     let stringLength = dist(this.vec1.x, this.vec1.y, this.vec2.x, this.vec2.y);
     let lengthToFreq =
@@ -102,9 +104,9 @@ function Line(quantity, index, lineColor) {
     noStroke();
     textSize(12);
     text(
-      stringLength > 1 ? lengthToFreq.toFixed(2) + " Hz" : "",
+      stringLength > 1 ? lengthToFreq.toFixed(2) + ' Hz' : '',
       this.vec2.x + centerVec.x + 50 / (1440 / width),
-      this.vec2.y + centerVec.y + 4
+      this.vec2.y + centerVec.y + 4,
     );
   };
 
@@ -124,7 +126,7 @@ function Line(quantity, index, lineColor) {
         this.vec1.x,
         this.vec1.y,
         this.vec2.x,
-        this.vec2.y
+        this.vec2.y,
       );
       let lengthToFreq =
         -1 * ((stringLength / viewScale / (width / 1440)) * 1.5 - 1300);
@@ -164,13 +166,13 @@ function Line(quantity, index, lineColor) {
 
     let absoluteTargetVec1 = createVector(
       this.targetVec1.x * (width / 1440),
-      this.targetVec1.y
+      this.targetVec1.y,
     );
     absoluteTargetVec1.mult(viewScale);
 
     let absoluteTargetVec2 = createVector(
       this.targetVec2.x * (width / 1440),
-      this.targetVec2.y
+      this.targetVec2.y,
     );
     absoluteTargetVec2.mult(viewScale);
 
@@ -205,8 +207,8 @@ function Grid(gridColor) {
 }
 
 function Intro(introColor) {
-  this.title = "ORBIT STRUM";
-  this.message = "click or press spacebar";
+  this.title = 'ORBIT STRUM';
+  this.message = 'click or press spacebar';
   this.titleColor = color(introColor);
   this.messageColor = color(introColor);
 
@@ -229,7 +231,7 @@ function Intro(introColor) {
         this.messageColor.setAlpha(alpha(this.messageColor) - 15);
       }
     } else {
-      this.messageColor.setAlpha(128 + 128 * sin(frameCount / fps * 3));
+      this.messageColor.setAlpha(128 + 128 * sin((frameCount / fps) * 3));
     }
   };
 }
@@ -293,22 +295,22 @@ function setup() {
   let dryWet = 0.6;
   reverb.drywet(dryWet);
 
-  textFont("Montserrat");
+  textFont('Montserrat');
 
-  bgTop = color("#FF6F03");
-  bgBottom = color("#FF6F03");
-  let colorA = "#ffffff";
+  bgTop = color('#FF6F03');
+  bgBottom = color('#FF6F03');
+  let colorA = '#ffffff';
   ballColor = colorA;
   ballStrokeColor = colorA;
   lineColor = colorA;
   textColor = colorA;
-  gridColor = "#3f72af"
+  gridColor = '#3f72af';
 
   viewScale = 0.9;
 
   ballAmount = 2;
   velocity = 7;
-  bar = 0
+  bar = 0;
 
   newGrid = new Grid(gridColor);
 
@@ -321,12 +323,25 @@ function setup() {
   let ballRad = 6;
 
   for (let i = 0; i < ballAmount; i += 1) {
-    let newBall = new Ball(ballColor, ballStrokeColor, ballRad, (360 / ballAmount) * (i + 0.5) - 130, velocity);
+    let newBall = new Ball(
+      ballColor,
+      ballStrokeColor,
+      ballRad,
+      (360 / ballAmount) * (i + 0.5) - 130,
+      velocity,
+    );
     ballList.push(newBall);
   }
 
   for (let i = 0; i < ballAmount; i += 1) {
-    let newBall = new Ball(ballColor, ballStrokeColor, ballRad, (360 / ballAmount) * i - 50, velocity, true);
+    let newBall = new Ball(
+      ballColor,
+      ballStrokeColor,
+      ballRad,
+      (360 / ballAmount) * i - 50,
+      velocity,
+      true,
+    );
     ballList.push(newBall);
   }
 
@@ -337,7 +352,7 @@ function setup() {
 }
 
 function draw() {
-  setGradient(0, 0, width, height, bgTop, bgBottom, Y_AXIS)
+  setGradient(0, 0, width, height, bgTop, bgBottom, Y_AXIS);
 
   // newGrid.update();
   // newGrid.display();
